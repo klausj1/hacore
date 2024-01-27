@@ -1,0 +1,10 @@
+# Describes the format for available statistic import services
+
+import_from_tsv:
+  fields:
+    filename:
+      required: true
+      example: "statisticdata.tsv"
+      default: "statisticdata.tsv"
+      selector:
+        text:

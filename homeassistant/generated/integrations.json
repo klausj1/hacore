@@ -2714,6 +2714,12 @@
       "config_flow": true,
       "iot_class": "cloud_push"
     },
+    "import_statistics": {
+      "name": "import_statistics",
+      "integration_type": "service",
+      "config_flow": false,
+      "iot_class": "calculated"
+    },
     "improv_ble": {
       "name": "Improv via BLE",
       "integration_type": "device",

@@ -1,0 +1,14 @@
+{
+  "services": {
+    "import_from_tsv": {
+      "name": "import_from_tsv",
+      "description": "Imports long term statistic values (1h) from tsv file (tab separated values)",
+      "fields": {
+        "filename": {
+          "name": "filename",
+          "description": "file containing the statistic data, to be put into the config folder"
+        }
+      }
+    }
+  }
+}
