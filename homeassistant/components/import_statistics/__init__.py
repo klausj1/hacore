@@ -8,7 +8,8 @@ import zoneinfo
 
 import pandas as pd
 
-from homeassistant.components.recorder.statistics import async_add_external_statistics
+# from homeassistant.components.recorder.statistics import async_add_external_statistics
+from homeassistant.components.recorder.statistics import async_import_statistics
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_validation as cv
@@ -73,9 +74,9 @@ def setup(hass: HomeAssistant, config: ConfigType) -> bool:
                     metadata = {
                         "has_mean": has_mean,
                         "has_sum": has_sum,
-                        "source": statistic_id.split(":")[
-                            0
-                        ],  # ToDo_ Check if exactly one : is there
+                        "source": "recorder",  # statistic_id.split(".")[
+                        #                            0
+                        #                        ],  # ToDo_ Check if exactly one : is there
                         "statistic_id": statistic_id,
                         "name": None,
                         "unit_of_measurement": row["unit"],
@@ -109,7 +110,8 @@ def setup(hass: HomeAssistant, config: ConfigType) -> bool:
             _LOGGER.debug(metadata)
             _LOGGER.debug("Statistics:")
             _LOGGER.debug(statistics)
-            async_add_external_statistics(hass, metadata, statistics)
+            #            async_add_external_statistics(hass, metadata, statistics)
+            async_import_statistics(hass, metadata, statistics)
 
     hass.services.register(DOMAIN, "import_from_file", handle_import_from_file)
 
