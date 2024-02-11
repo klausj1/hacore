@@ -9,8 +9,12 @@ import zoneinfo
 import pandas as pd
 
 # from homeassistant.components.recorder.statistics import async_add_external_statistics
-from homeassistant.components.recorder.statistics import async_import_statistics
-from homeassistant.core import HomeAssistant
+from homeassistant.components.recorder.statistics import (
+    async_add_external_statistics,
+    async_import_statistics,
+    valid_statistic_id,
+)
+from homeassistant.core import HomeAssistant, valid_entity_id
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
@@ -34,9 +38,9 @@ def setup(hass: HomeAssistant, config: ConfigType) -> bool:
         """Handle the service call."""
         filename = call.data.get(ATTR_FILENAME)
         if call.data.get(ATTR_DECIMAL, True):
-            decimal = "."
-        else:
             decimal = ","
+        else:
+            decimal = "."
         timezone_identifier = call.data.get(ATTR_TIMEZONE_IDENTIFIER)
         delimiter = call.data.get(ATTR_DELIMITER)
         _LOGGER.info(f"Importing statistics from file: {filename}")  # noqa: G004
@@ -71,12 +75,14 @@ def setup(hass: HomeAssistant, config: ConfigType) -> bool:
             for _index, row in df.iterrows():
                 statistic_id = row["statistic_id"]
                 if statistic_id not in stats:
+                    if "." in statistic_id:
+                        source = "recorder"
+                    elif ":" in statistic_id:
+                        source = statistic_id.split(".")[0]
                     metadata = {
                         "has_mean": has_mean,
                         "has_sum": has_sum,
-                        "source": "recorder",  # statistic_id.split(".")[
-                        #                            0
-                        #                        ],  # ToDo_ Check if exactly one : is there
+                        "source": source,
                         "statistic_id": statistic_id,
                         "name": None,
                         "unit_of_measurement": row["unit"],
@@ -98,20 +104,29 @@ def setup(hass: HomeAssistant, config: ConfigType) -> bool:
                             row["start"], "%d.%m.%Y %H:%M"
                         ).replace(tzinfo=timezone),
                         "sum": row["sum"],
-                        "state": row["sum"],  # sum and state are identical
+                        "state": row["state"],
                     }
                 stats[statistic_id][1].append(new_stat)
 
         for stat in stats.values():
             metadata = stat[0]
             statistics = stat[1]
-            _LOGGER.debug("Calling async_add_external_statistics with:")
+            _LOGGER.debug(
+                "Calling async_import_statistics / async_add_external_statistics with:"
+            )
             _LOGGER.debug("Metadata:")
             _LOGGER.debug(metadata)
             _LOGGER.debug("Statistics:")
             _LOGGER.debug(statistics)
-            #            async_add_external_statistics(hass, metadata, statistics)
-            async_import_statistics(hass, metadata, statistics)
+
+            if valid_entity_id(metadata["statistic_id"]):
+                async_import_statistics(hass, metadata, statistics)
+            elif valid_statistic_id(metadata["statistic_id"]):
+                async_add_external_statistics(hass, metadata, statistics)
+            else:
+                _handle_error(
+                    f"statistic_id {metadata['statistic_id']} is valid. Use either an existing entity ID, or a statistic id (containing a ':')"
+                )
 
     hass.services.register(DOMAIN, "import_from_file", handle_import_from_file)
 
