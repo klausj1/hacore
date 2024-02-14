@@ -4,6 +4,6 @@
   - OK Check floats
 - OK Add unit to measured values
 - OK Meaningful logging
-- Stundewerte passen, aber Tageswerte passen überhaupt nicht ...
+- Move to real system
 - Web documentation
 - Publish (HACS?) and post (?)
